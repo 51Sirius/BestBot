@@ -10,7 +10,9 @@ async def add_point(user_id, points):
     if user.fetchone() is None:
         user = await add_user(user_id)
     old_point = int(cur.execute('select exp from users where id = ?', (user_id,)).fetchone()[0])
-    cur.execute(f'update users set exp={old_point + points * cfg.BUST_XP} where id=?', (user_id,))
+    points = old_point + points * cfg.BUST_XP
+    points = check_rank(user_id, points)
+    cur.execute(f'update users set exp={points} where id=?', (user_id,))
     con.commit()
 
 
@@ -31,3 +33,32 @@ async def add_hero(name):
     cur.execute(f'insert into lol_heroes(name) values (?)', (name,))
     con.commit()
     print('Create new hero -', name)
+
+
+def get_score(user_id):
+    return cur.execute('select exp from users where id=?', (user_id,)).fetchone()[0]
+
+
+def get_rank(user_id):
+    count = 1
+    ls_users = cur.execute('select id from users order by exp desc').fetchall()
+    for i in ls_users:
+        if i[0] == user_id:
+            return count
+        count += 1
+
+
+def check_rank(user_id, points):
+    rank_cult = cur.execute('select cult_rank from users where id=?', (user_id,)).fetchone()[0]
+    wall = cfg.CULT_POINTS_WALL[rank_cult - 1]
+    point = 0
+    if points >= wall:
+        point = points - wall
+        stage = cur.execute('select stadia_cult from users where id=?', (user_id,)).fetchone()[0]
+        if stage == 9:
+            cur.execute(f'update users set cult_rank=? where id={user_id}', (rank_cult + 1,))
+            cur.execute(f'update users set stadia_cult=1 where id={user_id}')
+        else:
+            cur.execute(f'update users set stadia_cult=? where id={user_id}', (stage + 1,))
+        con.commit()
+    return point
