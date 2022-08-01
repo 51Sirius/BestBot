@@ -12,11 +12,11 @@ class Lol(commands.Cog):
 
     @commands.command(name='setlolnick', aliases=['setnick'])
     async def _setlolnick(self, ctx, nick):
-        await set_nick(ctx.author.id, nick)
+        set_nick(ctx.author.id, nick)
 
     @commands.command(name='addhero', aliases=['addherolol'])
     async def _addhero(self, ctx, nick):
-        await add_hero(nick)
+        add_hero(nick)
 
 
 def setup(bot):
