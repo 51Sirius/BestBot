@@ -11,13 +11,14 @@ async def add_point(user_id, points):
         user = await add_user(user_id)
     old_point = int(cur.execute('select exp from users where id = ?', (user_id,)).fetchone()[0])
     points = old_point + points * cfg.BUST_XP
-    points = check_rank(user_id, points)
+    points, new = check_rank(user_id, points)
     cur.execute(f'update users set exp={points} where id=?', (user_id,))
     con.commit()
+    return new
 
 
 async def add_user(user_id):
-    cur.execute("INSERT INTO users(id,exp) VALUES (?,?)", (user_id, 0))
+    cur.execute("INSERT INTO users(id,exp,cult_rank,stadia_cult) VALUES (?,?,?,?)", (user_id, 0, 1, 1))
     con.commit()
     print(f'Add new user with id - {user_id}')
     return cur.execute('select * from users where id = ?', (user_id,))
@@ -52,22 +53,24 @@ def check_rank(user_id, points):
     rank_cult = cur.execute('select cult_rank from users where id=?', (user_id,)).fetchone()[0]
     wall = cfg.CULT_POINTS_WALL[rank_cult - 1]
     point = points
+    new = False
     if points >= wall:
         point = points - wall
         stage = cur.execute('select stadia_cult from users where id=?', (user_id,)).fetchone()[0]
         if stage == 9:
             cur.execute(f'update users set cult_rank=? where id={user_id}', (rank_cult + 1,))
             cur.execute(f'update users set stadia_cult=1 where id={user_id}')
+            new = True
         else:
             cur.execute(f'update users set stadia_cult=? where id={user_id}', (stage + 1,))
         con.commit()
-    return point
+    return point, new
 
 
 def get_rank_name(user_id):
     rank_cult = cur.execute('select cult_rank from users where id=?', (user_id,)).fetchone()[0]
     stage = cur.execute('select stadia_cult from users where id=?', (user_id,)).fetchone()[0]
-    return str(cfg.CULT_RANKS_NAME[rank_cult-1] + ' ' + str(stage))
+    return str(cfg.CULT_RANKS_NAME[rank_cult - 1] + ' ' + str(stage))
 
 
 def get_info_rank(user_id):

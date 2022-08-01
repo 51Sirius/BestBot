@@ -22,7 +22,9 @@ if __name__ == '__main__':
 @bot.event
 async def on_message(ctx):
     if ctx.author.id != 953947346704691241:
-        await lvl.add_point(ctx.author.id, len(ctx.content))
+        new = await lvl.add_point(ctx.author.id, len(ctx.content))
+        if new:
+            await ctx.channel.send(ctx.author.mention+'Поздравляем вы проравались на новую стадию!!!')
     await bot.process_commands(ctx)
 
 
