@@ -24,3 +24,10 @@ async def add_user(user_id):
 async def set_nick(user_id, nick):
     cur.execute(f'update users set lol=? where id={user_id}', (nick,))
     con.commit()
+    print('Set nick lol to user -', user_id)
+
+
+async def add_hero(name):
+    cur.execute(f'insert into lol_heroes(name) values (?)', (name,))
+    con.commit()
+    print('Create new hero -', name)
