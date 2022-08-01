@@ -18,8 +18,9 @@ class General(commands.Cog):
 
     @commands.command(name='rank', aliases=['r'])
     async def _rank(self, ctx):
-        img.create_lvl_card(ctx)
-        #await ctx.channel.send(file=discord.File('images/tmp.png'))
+        rank = get_info_rank(ctx.author.id)
+        img.create_lvl_card(ctx, rank, get_rank_name(ctx.author.id))
+        await ctx.channel.send(file=discord.File('images/w.png'))
 
 
 def setup(bot):

@@ -51,7 +51,7 @@ def get_rank(user_id):
 def check_rank(user_id, points):
     rank_cult = cur.execute('select cult_rank from users where id=?', (user_id,)).fetchone()[0]
     wall = cfg.CULT_POINTS_WALL[rank_cult - 1]
-    point = 0
+    point = points
     if points >= wall:
         point = points - wall
         stage = cur.execute('select stadia_cult from users where id=?', (user_id,)).fetchone()[0]
@@ -62,3 +62,14 @@ def check_rank(user_id, points):
             cur.execute(f'update users set stadia_cult=? where id={user_id}', (stage + 1,))
         con.commit()
     return point
+
+
+def get_rank_name(user_id):
+    rank_cult = cur.execute('select cult_rank from users where id=?', (user_id,)).fetchone()[0]
+    stage = cur.execute('select stadia_cult from users where id=?', (user_id,)).fetchone()[0]
+    return str(cfg.CULT_RANKS_NAME[rank_cult-1] + ' ' + str(stage))
+
+
+def get_info_rank(user_id):
+    rank_cult = cur.execute('select cult_rank from users where id=?', (user_id,)).fetchone()[0]
+    return [rank_cult, [get_score(user_id), cfg.CULT_POINTS_WALL[rank_cult - 1]]]

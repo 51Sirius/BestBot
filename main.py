@@ -21,7 +21,8 @@ if __name__ == '__main__':
 
 @bot.event
 async def on_message(ctx):
-    await lvl.add_point(ctx.author.id, len(ctx.content))
+    if ctx.author.id != 953947346704691241:
+        await lvl.add_point(ctx.author.id, len(ctx.content))
     await bot.process_commands(ctx)
 
 
