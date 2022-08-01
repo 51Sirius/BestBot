@@ -4,9 +4,7 @@ import requests
 import numpy as np
 
 
-def create_lvl_card(ctx, rank, rank_name):
-    member = ctx.author
-    id = ctx.author.id
+def create_lvl_card(member, rank, rank_name):
     image_av = member.avatar_url_as(format='png', size=128)
     url = image_av
     try:
