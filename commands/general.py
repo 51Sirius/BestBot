@@ -13,7 +13,7 @@ class General(commands.Cog):
         self.bot = bot
 
     @commands.command(name='commands', aliases=['cmd'])
-    async def _connect(self, ctx):
+    async def _cmd(self, ctx):
         await ctx.send(frm_ls_to_block(cfg.COMMAND_LIST))
 
     @commands.command(name='rank', aliases=['r'])
