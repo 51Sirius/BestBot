@@ -24,7 +24,7 @@ class General(commands.Cog):
             await ctx.channel.send(file=discord.File('images/w.png'))
         else:
             rank = get_info_rank(ctx.author.id)
-            img.create_lvl_card(ctx, rank, get_rank_name(ctx.author.id))
+            img.create_lvl_card(ctx.author, rank, get_rank_name(ctx.author.id))
             await ctx.channel.send(file=discord.File('images/w.png'))
 
 

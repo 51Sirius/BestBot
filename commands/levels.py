@@ -24,18 +24,6 @@ def add_user(user_id):
     return cur.execute('select * from users where id = ?', (user_id,))
 
 
-def set_nick(user_id, nick):
-    cur.execute(f'update users set lol=? where id={user_id}', (nick,))
-    con.commit()
-    print('Set nick lol to user -', user_id)
-
-
-def add_hero(name):
-    cur.execute(f'insert into lol_heroes(name) values (?)', (name,))
-    con.commit()
-    print('Create new hero -', name)
-
-
 def get_score(user_id):
     return cur.execute('select exp from users where id=?', (user_id,)).fetchone()[0]
 
