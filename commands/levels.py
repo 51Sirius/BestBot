@@ -41,16 +41,20 @@ def check_rank(user_id, points):
     rank_cult = cur.execute('select cult_rank from users where id=?', (user_id,)).fetchone()[0]
     wall = cfg.CULT_POINTS_WALL[rank_cult - 1]
     point = points
-    new = False
+    new = [0, 0, False]
+    stage = cur.execute('select stadia_cult from users where id=?', (user_id,)).fetchone()[0]
+    if stage == 1 and rank_cult == 1:
+        new[2] = True
     if points >= wall:
         point = points - wall
-        stage = cur.execute('select stadia_cult from users where id=?', (user_id,)).fetchone()[0]
         if stage == 9:
             cur.execute(f'update users set cult_rank=? where id={user_id}', (rank_cult + 1,))
             cur.execute(f'update users set stadia_cult=1 where id={user_id}')
-            new = True
+            new = [rank_cult+1, 1]
         else:
             cur.execute(f'update users set stadia_cult=? where id={user_id}', (stage + 1,))
+            new[0], new[1] = [0, stage+1]
+            print(new)
         con.commit()
     return point, new
 

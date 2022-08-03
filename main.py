@@ -3,6 +3,7 @@ import cfg
 import commands.levels as lvl
 from commands.customization import *
 import time
+from discord.utils import get
 
 initial_extensions = ['commands.general', 'commands.lol']
 bot = commands.Bot(command_prefix=cfg.BOT_PREFIX,
@@ -24,8 +25,31 @@ if __name__ == '__main__':
 async def on_message(ctx):
     if ctx.author.id != 953947346704691241:
         new = lvl.add_point(ctx.author.id, len(ctx.content))
-        if new:
+        if new[2]:
+            role = get(ctx.guild.roles, name='1 стадия')
+            role_b = get(ctx.guild.roles, name='Духовный Мир')
+            await ctx.author.add_roles(role_b)
+            await ctx.author.add_roles(role)
+        if new[0] != 0:
+            role_delete = get(ctx.guild.roles, name='пиковая стадия')
+            role = get(ctx.guild.roles, name='1 стадия')
+            role_b_d = get(ctx.guild.roles, name=cfg.CULT_RANKS_NAME[new[0]-2])
+            role_b = get(ctx.guild.roles, name=cfg.CULT_RANKS_NAME[new[0]-1])
             await ctx.channel.send(ctx.author.mention + 'Поздравляем вы проравались на новую стадию!!!')
+            await ctx.author.remove_roles(role_delete)
+            await ctx.author.add_roles(role)
+            await ctx.author.remove_roles(role_b_d)
+            await ctx.author.add_roles(role_b)
+
+        if new[1] != 0 and new[0] == 0:
+            if new[1] == 9:
+                role = get(ctx.guild.roles, name='пиковая стадия')
+            else:
+                role = get(ctx.guild.roles, name=str(new[1])+' стадия')
+            role_delete = get(ctx.guild.roles, name=str(new[1]-1)+' стадия')
+            await ctx.author.remove_roles(role_delete)
+            await ctx.author.add_roles(role)
+
     await bot.process_commands(ctx)
 
 
