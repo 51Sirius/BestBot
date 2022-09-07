@@ -10,7 +10,8 @@ def add_point(user_id, points):
     if user.fetchone() is None:
         user = add_user(user_id)
     old_point = int(cur.execute('select exp from users where id = ?', (user_id,)).fetchone()[0])
-    points = old_point + points * cfg.BUST_XP
+    bst = cur.execute('select bust_exp from users where id = ?', (user_id,)).fetchone()[0]
+    points = old_point + points * cfg.BUST_XP * bst
     points, new = check_rank(user_id, points)
     cur.execute(f'update users set exp={points} where id=?', (user_id,))
     con.commit()
@@ -50,11 +51,10 @@ def check_rank(user_id, points):
         if stage == 9:
             cur.execute(f'update users set cult_rank=? where id={user_id}', (rank_cult + 1,))
             cur.execute(f'update users set stadia_cult=1 where id={user_id}')
-            new = [rank_cult+1, 1]
+            new = [rank_cult + 1, 1]
         else:
             cur.execute(f'update users set stadia_cult=? where id={user_id}', (stage + 1,))
-            new[0], new[1] = [0, stage+1]
-            print(new)
+            new[0], new[1] = [0, stage + 1]
         con.commit()
     return point, new
 
@@ -72,7 +72,7 @@ def get_info_rank(user_id):
 
 def set_time(user_id, current_time):
     time = cur.execute('select time_start from users where id=?', (user_id,)).fetchone()[0]
-    if time == '0':
+    if time == '0' or time == 0:
         cur.execute('update users set time_start=? where id=?', (current_time, user_id))
         con.commit()
 
@@ -89,7 +89,7 @@ def set_time(user_id, current_time):
         if tmp_hours < 0:
             tmp_hours += 24
         if tmp_minutes <= 0:
-            points = (tmp_hours*60 + minutes_second - minutes_first)*2*cfg.BUST_XP
+            points = (tmp_hours * 60 + minutes_second - minutes_first) * 2 * cfg.BUST_XP
         else:
-            points = (tmp_hours*60 + tmp_minutes)*2*cfg.BUST_XP
+            points = (tmp_hours * 60 + tmp_minutes) * 2 * cfg.BUST_XP
         add_point(user_id, points)
