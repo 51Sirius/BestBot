@@ -28,8 +28,13 @@ async def on_message(ctx):
         if new[2]:
             role = get(ctx.guild.roles, name='1 стадия')
             role_b = get(ctx.guild.roles, name='Духовный Мир')
+            roles = ctx.author.roles
             await ctx.author.add_roles(role_b)
             await ctx.author.add_roles(role)
+            await ctx.author.add_roles(get(ctx.guild.roles, name='Обычный'))
+            await ctx.author.add_roles(get(ctx.guild.roles, name='⠀⠀⠀⠀⠀⠀⠀⠀◖Ранг◗⠀⠀⠀⠀⠀⠀⠀⠀'))
+            await ctx.author.add_roles(get(ctx.guild.roles, name='⠀⠀⠀⠀⠀⠀⠀⠀⠀◖Игры◗⠀⠀⠀⠀⠀⠀⠀⠀⠀'))
+            await ctx.author.add_roles(get(ctx.guild.roles, name='⠀⠀⠀⠀⠀⠀⠀◖Прочие роли ◗⠀⠀⠀⠀⠀⠀'))
         if new[0] != 0:
             role_delete = get(ctx.guild.roles, name='пиковая стадия')
             role = get(ctx.guild.roles, name='1 стадия')
