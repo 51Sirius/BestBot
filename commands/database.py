@@ -59,17 +59,6 @@ def check_rank(user_id, points):
     return point, new
 
 
-def get_rank_name(user_id):
-    rank_cult = cur.execute('select cult_rank from users where id=?', (user_id,)).fetchone()[0]
-    stage = cur.execute('select stadia_cult from users where id=?', (user_id,)).fetchone()[0]
-    return str(cfg.CULT_RANKS_NAME[rank_cult - 1] + ' ' + str(stage))
-
-
-def get_info_rank(user_id):
-    rank_cult = cur.execute('select cult_rank from users where id=?', (user_id,)).fetchone()[0]
-    return [rank_cult, [get_score(user_id), cfg.CULT_POINTS_WALL[rank_cult - 1]]]
-
-
 def set_time(user_id, current_time):
     time = cur.execute('select time_start from users where id=?', (user_id,)).fetchone()[0]
     if time == '0' or time == 0:
@@ -93,3 +82,26 @@ def set_time(user_id, current_time):
         else:
             points = (tmp_hours * 60 + tmp_minutes) * 2 * cfg.BUST_XP
         add_point(user_id, points)
+
+
+def set_rank(user_id, value):
+    cur.execute('update users set cult_rank=? where id=?', (value, user_id))
+    con.commit()
+
+
+def check_sync(user_id, rank_cult, stadia):
+    rank_db = cur.execute('select cult_rank from users where id=?', (user_id,)).fetchone()[0]
+    stadia_db = cur.execute('select stadia_cult from users where id=?', (user_id,)).fetchone()[0]
+    if rank_db != rank_cult:
+        cur.execute('update users set cult_rank=?  where id=?', (rank_cult, user_id))
+    elif stadia_db != stadia:
+        cur.execute('update users set stadia_cult=?  where id=?', (stadia, user_id))
+    else:
+        return True
+    cur.execute('update users set exp=?  where id=?', (0, user_id))
+    return False
+
+
+def check_user(user_id):
+    if cur.execute('select * from users where id=?', (user_id,)).fetchone() is None:
+        add_user(user_id)

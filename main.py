@@ -1,13 +1,17 @@
 from discord.ext import commands
 import cfg
-import commands.levels as lvl
+import commands.database as db
 from commands.customization import *
 import time
 from discord.utils import get
+import discord
+
+intents = discord.Intents.default()
+intents.members = True
 
 initial_extensions = ['commands.general', 'commands.lol']
 bot = commands.Bot(command_prefix=cfg.BOT_PREFIX,
-                   pm_help=True, case_insensitive=True)
+                   pm_help=True, case_insensitive=True, intents=intents)
 
 if __name__ == '__main__':
     if cfg.BOT_TOKEN == "":
@@ -24,36 +28,7 @@ if __name__ == '__main__':
 @bot.event
 async def on_message(ctx):
     if ctx.author.id != 953947346704691241:
-        new = lvl.add_point(ctx.author.id, len(ctx.content))
-        if new[2]:
-            role = get(ctx.guild.roles, name='1 стадия')
-            role_b = get(ctx.guild.roles, name='Духовный Мир')
-            roles = ctx.author.roles
-            await ctx.author.add_roles(role_b)
-            await ctx.author.add_roles(role)
-            await ctx.author.add_roles(get(ctx.guild.roles, name='Обычный'))
-            await ctx.author.add_roles(get(ctx.guild.roles, name='⠀⠀⠀⠀⠀⠀⠀⠀◖Ранг◗⠀⠀⠀⠀⠀⠀⠀⠀'))
-            await ctx.author.add_roles(get(ctx.guild.roles, name='⠀⠀⠀⠀⠀⠀⠀⠀⠀◖Игры◗⠀⠀⠀⠀⠀⠀⠀⠀⠀'))
-            await ctx.author.add_roles(get(ctx.guild.roles, name='⠀⠀⠀⠀⠀⠀⠀◖Прочие роли ◗⠀⠀⠀⠀⠀⠀'))
-        if new[0] != 0:
-            role_delete = get(ctx.guild.roles, name='пиковая стадия')
-            role = get(ctx.guild.roles, name='1 стадия')
-            role_b_d = get(ctx.guild.roles, name=cfg.CULT_RANKS_NAME[new[0]-2])
-            role_b = get(ctx.guild.roles, name=cfg.CULT_RANKS_NAME[new[0]-1])
-            await ctx.channel.send(ctx.author.mention + 'Поздравляем вы проравались на новую стадию!!!')
-            await ctx.author.remove_roles(role_delete)
-            await ctx.author.add_roles(role)
-            await ctx.author.remove_roles(role_b_d)
-            await ctx.author.add_roles(role_b)
-        if new[1] != 0 and new[0] == 0:
-            if new[1] == 9:
-                role = get(ctx.guild.roles, name='пиковая стадия')
-            else:
-                role = get(ctx.guild.roles, name=str(new[1])+' стадия')
-            role_delete = get(ctx.guild.roles, name=str(new[1]-1)+' стадия')
-            await ctx.author.remove_roles(role_delete)
-            await ctx.author.add_roles(role)
-
+        pass
     await bot.process_commands(ctx)
 
 
@@ -65,7 +40,40 @@ async def on_voice_state_update(member, before, after):
             before.self_mute or after.self_mute or before.afk or after.afk or before.suppress
             or after.suppress or before.self_video or after.self_video or before.self_stream or after.self_stream
             or before.self_deaf or after.self_deaf or before.mute or after.mute or before.deaf or after.deaf):
-        lvl.set_time(member.id, current_time)
+        db.set_time(member.id, current_time)
 
+
+@bot.event
+async def on_ready():
+    for guild in bot.guilds:
+        for member in guild.members:
+            roles = [x.name for x in member.roles]
+            for check in cfg.MAIN_ROLES:
+                if check not in roles:
+                    role = get(guild.roles, name=check)
+                    await member.add_roles(role)
+                    print(f"User - {member.name} was update")
+            flag = False
+            rank_cult = 1
+            for check in cfg.CULT_RANKS_NAME:
+                if check in roles:
+                    flag = True
+                    break
+                rank_cult += 1
+            if not flag:
+                db.add_user(member.id)
+                role = get(guild.roles, name="Духовный Мир")
+                role_b = get(guild.roles, name="1 стадия")
+                await member.add_roles(role)
+                await member.add_roles(role_b)
+            else:
+                db.check_user(member.id)
+                stadia = 9
+                for i in range(1, 9):
+                    if str(i) + ' стадия' in roles:
+                        stadia = i
+                if not db.check_sync(member.id, rank_cult, stadia):
+                    print(f"User - {member.name} was sync")
+    print("BOT has start working")
 
 bot.run(cfg.BOT_TOKEN, bot=True, reconnect=True)
