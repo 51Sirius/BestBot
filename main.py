@@ -40,7 +40,6 @@ async def on_message(ctx):
             await ctx.author.add_roles(role)
             await ctx.author.remove_roles(role_b_d)
             await ctx.author.add_roles(role_b)
-
         if new[1] != 0 and new[0] == 0:
             if new[1] == 9:
                 role = get(ctx.guild.roles, name='пиковая стадия')
