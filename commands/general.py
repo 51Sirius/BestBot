@@ -4,7 +4,7 @@ from commands.customization import *
 
 from discord.ext import commands
 import commands.images as img
-from commands.levels import *
+from commands.database import *
 from discord.ext.commands import has_permissions
 
 
