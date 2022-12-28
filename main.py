@@ -28,7 +28,19 @@ if __name__ == '__main__':
 @bot.event
 async def on_message(ctx):
     if ctx.author.id != 953947346704691241:
-        pass
+        points = len(ctx.content)
+        new_1, new_2 = db.add_point(ctx.author.id, points)
+        if new_1:
+            role = get(ctx.guild.roles, name="Духовный Мир")
+            role_b = get(ctx.guild.roles, name="1 стадия")
+            await ctx.author.add_roles(role)
+            await ctx.author.add_roles(role_b)
+        else:
+            if not (new_2[0] == 0 and new_2[1] == 0):
+                if new_2[0] != 0:
+                    await clear_rank_role(ctx.author, ctx.guild)
+                    await ctx.author.add_roles(get(ctx.guild.roles, name=cfg.CULT_RANKS_NAME[new_2[0] - 1]))
+                    await ctx.author.add_roles(get(ctx.guild.roles, name="1 стадия"))
     await bot.process_commands(ctx)
 
 
@@ -75,5 +87,25 @@ async def on_ready():
                 if not db.check_sync(member.id, rank_cult, stadia):
                     print(f"User - {member.name} was sync")
     print("BOT has start working")
+
+
+async def clear_rank_role(user, guild):
+    roles = user.roles
+    rank_cult = 1
+    for check in cfg.CULT_RANKS_NAME:
+        if check in roles:
+            break
+        rank_cult += 1
+    stadia = 9
+    for i in range(1, 9):
+        if str(i) + ' стадия' in roles:
+            stadia = i
+    if stadia == 9:
+        stadia = "пиковая"
+    role_1 = get(guild.roles, name=cfg.CULT_RANKS_NAME[rank_cult - 1])
+    role_2 = get(guild.roles, name=str(stadia) + ' стадия')
+    user.remove_roles(role_1)
+    user.remove_roles(role_2)
+
 
 bot.run(cfg.BOT_TOKEN, bot=True, reconnect=True)

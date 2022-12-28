@@ -7,19 +7,21 @@ cur = con.cursor()
 
 def add_point(user_id, points):
     user = cur.execute('select * from users where id = ?', (user_id,))
+    new = 0
     if user.fetchone() is None:
-        user = add_user(user_id)
+        add_user(user_id, points)
+        return True, new
     old_point = int(cur.execute('select exp from users where id = ?', (user_id,)).fetchone()[0])
     bst = cur.execute('select bust_exp from users where id = ?', (user_id,)).fetchone()[0]
     points = old_point + points * cfg.BUST_XP * bst
     points, new = check_rank(user_id, points)
     cur.execute(f'update users set exp={points} where id=?', (user_id,))
     con.commit()
-    return new
+    return False, new
 
 
-def add_user(user_id):
-    cur.execute("INSERT INTO users(id,exp,cult_rank,stadia_cult) VALUES (?,?,?,?)", (user_id, 0, 1, 1))
+def add_user(user_id, points=0):
+    cur.execute("INSERT INTO users(id,exp,cult_rank,stadia_cult) VALUES (?,?,?,?)", (user_id, points, 1, 1))
     con.commit()
     print(f'Add new user with id - {user_id}')
     return cur.execute('select * from users where id = ?', (user_id,))
@@ -42,10 +44,8 @@ def check_rank(user_id, points):
     rank_cult = cur.execute('select cult_rank from users where id=?', (user_id,)).fetchone()[0]
     wall = cfg.CULT_POINTS_WALL[rank_cult - 1]
     point = points
-    new = [0, 0, False]
+    new = [0, 0]
     stage = cur.execute('select stadia_cult from users where id=?', (user_id,)).fetchone()[0]
-    if stage == 1 and rank_cult == 1:
-        new[2] = True
     if points >= wall:
         point = points - wall
         if stage == 9:
@@ -54,7 +54,7 @@ def check_rank(user_id, points):
             new = [rank_cult + 1, 1]
         else:
             cur.execute(f'update users set stadia_cult=? where id={user_id}', (stage + 1,))
-            new[0], new[1] = [0, stage + 1]
+            new = [0, stage + 1]
         con.commit()
     return point, new
 
@@ -68,7 +68,6 @@ def set_time(user_id, current_time):
     else:
         cur.execute('update users set time_start=? where id=?', ('0', user_id))
         con.commit()
-        points = 0
         hours_first = int(time[:2])
         hours_second = int(current_time[:2])
         tmp_hours = hours_second - hours_first
@@ -105,3 +104,14 @@ def check_sync(user_id, rank_cult, stadia):
 def check_user(user_id):
     if cur.execute('select * from users where id=?', (user_id,)).fetchone() is None:
         add_user(user_id)
+
+
+def get_info_rank(user_id):
+    rank_cult = cur.execute('select cult_rank from users where id=?', (user_id,)).fetchone()[0]
+    return [rank_cult, [get_score(user_id), cfg.CULT_POINTS_WALL[rank_cult - 1]]]
+
+
+def get_rank_name(user_id):
+    rank_cult = cur.execute('select cult_rank from users where id=?', (user_id,)).fetchone()[0]
+    stage = cur.execute('select stadia_cult from users where id=?', (user_id,)).fetchone()[0]
+    return str(cfg.CULT_RANKS_NAME[rank_cult - 1] + ' ' + str(stage))
