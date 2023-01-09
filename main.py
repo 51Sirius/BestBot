@@ -37,10 +37,10 @@ async def on_message(ctx):
             await ctx.author.add_roles(role_b)
         else:
             if not (new_2[0] == 0 and new_2[1] == 0):
-                if new_2[0] != 0:
-                    await clear_rank_role(ctx.author, ctx.guild)
-                    await ctx.author.add_roles(get(ctx.guild.roles, name=cfg.CULT_RANKS_NAME[new_2[0] - 1]))
-                    await ctx.author.add_roles(get(ctx.guild.roles, name="1 стадия"))
+                await clear_rank_role(ctx.author, ctx.guild)
+                await ctx.author.add_roles(get(ctx.guild.roles, name=cfg.CULT_RANKS_NAME[new_2[0] - 1]))
+                await ctx.author.add_roles(get(ctx.guild.roles, name=f"{new_2[1]} стадия"))
+
     await bot.process_commands(ctx)
 
 
@@ -85,27 +85,31 @@ async def on_ready():
                     if str(i) + ' стадия' in roles:
                         stadia = i
                 if not db.check_sync(member.id, rank_cult, stadia):
-                    print(f"User - {member.name} was sync")
+                    print(f"User - {member.name} was sync to {rank_cult, stadia}")
     print("BOT has start working")
 
 
-async def clear_rank_role(user, guild):
+async def clear_rank_role(user, guild, rank_cult=None, stadia=None):
     roles = user.roles
-    rank_cult = 1
-    for check in cfg.CULT_RANKS_NAME:
-        if check in roles:
-            break
-        rank_cult += 1
-    stadia = 9
-    for i in range(1, 9):
-        if str(i) + ' стадия' in roles:
-            stadia = i
-    if stadia == 9:
-        stadia = "пиковая"
+    roles = [x.name for x in roles]
+    if stadia is None:
+        stadia = 9
+        for i in range(1, 9):
+            if str(i) + ' стадия' in roles:
+                stadia = i
+        if stadia == 9:
+            stadia = "пиковая"
+    if rank_cult is None:
+        rank_cult = 1
+        for check in cfg.CULT_RANKS_NAME:
+            if check in roles:
+                break
+            rank_cult += 1
+            print(check, roles)
     role_1 = get(guild.roles, name=cfg.CULT_RANKS_NAME[rank_cult - 1])
     role_2 = get(guild.roles, name=str(stadia) + ' стадия')
-    user.remove_roles(role_1)
-    user.remove_roles(role_2)
+    await user.remove_roles(role_1)
+    await user.remove_roles(role_2)
 
 
-bot.run(cfg.BOT_TOKEN, bot=True, reconnect=True)
+bot.run(cfg.BOT_TOKEN_TEST, bot=True, reconnect=True)

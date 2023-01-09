@@ -54,7 +54,7 @@ def check_rank(user_id, points):
             new = [rank_cult + 1, 1]
         else:
             cur.execute(f'update users set stadia_cult=? where id={user_id}', (stage + 1,))
-            new = [0, stage + 1]
+            new = [rank_cult, stage + 1]
         con.commit()
     return point, new
 
@@ -98,6 +98,7 @@ def check_sync(user_id, rank_cult, stadia):
     else:
         return True
     cur.execute('update users set exp=?  where id=?', (0, user_id))
+    con.commit()
     return False
 
 
