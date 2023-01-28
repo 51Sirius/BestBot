@@ -8,8 +8,8 @@ class General(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.slash_command(name='commands', aliases=['cmd'], description="Responds with 'World'")
-    async def _cmd(self, ctx):
+    @commands.slash_command(name='echo', aliases=['echo'], description="Responds with 'World'")
+    async def echo(self, ctx):
         pass
 
 

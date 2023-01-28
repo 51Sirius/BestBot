@@ -1,7 +1,7 @@
 import disnake
 import cfg
 from disnake.ext import commands
-from main import *
+from src.main import *
 from disnake.utils import get
 
 intents = disnake.Intents.default()
@@ -37,7 +37,16 @@ async def on_ready():
                             print(f"User - {member.name} was update with main roles")
                         except Exception as error:
                             print(error)
-                #cult_from_db = get_cult_from_db()
-
+                cultivation, antisync = sync(member.id, roles)
+                if not antisync:
+                    await clear_role_cultivation(member, guild)
+                    role_cult = get(guild.roles, name=cfg.CULT_RANKS_NAME[cultivation[0] - 1])
+                    if cultivation[1] == 9:
+                        role_stage = get(guild.roles, name='пиковая стадия')
+                    else:
+                        role_stage = get(guild.roles, name=str(cultivation[1]) + ' стадия')
+                    await member.add_roles(role_cult)
+                    await member.add_roles(role_stage)
+                    print(f'User - {member.name} was update with cultivation roles')
 
 bot.run(cfg.BOT_TOKEN_TEST)
