@@ -55,9 +55,11 @@ async def on_ready():
 @bot.event
 async def on_voice_state_update(member, before, after):
     if before.channel is None or after.channel is None:
-        t = time.localtime()
-        print(t)
-        current_time = str(time.strftime("%H:%M:%S", t))
+        t = int(time.time())
+        if before.channel is None:
+            await set_time(member.id, t)
+        else:
+            await update_status(member, t, before.channel.guild)
 
 
 bot.run(cfg.BOT_TOKEN_TEST)

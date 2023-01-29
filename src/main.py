@@ -38,9 +38,8 @@ def sync(member_id, roles):
     cult_from_db = get_cult_from_db(member_id)
     cult_from_ds = get_cult_from_ds(roles)
     if cult_from_db[0] != cult_from_ds[0] or cult_from_db[1] != cult_from_ds[1]:
-        if cult_from_db[0] * cult_from_db[1] > cult_from_ds[0] * cult_from_ds[1]:
+        if cult_from_db[0] * 9 + cult_from_db[1] > cult_from_ds[0] * 9 + cult_from_ds[1]:
             return [cult_from_db[0], cult_from_db[1]], False
-            print()
         else:
             set_cultivation(member_id, cult_from_ds)
             return [cult_from_ds[0], cult_from_ds[1]], True
@@ -58,3 +57,42 @@ async def clear_role_cultivation(member, guild):
         await member.remove_roles(role_2)
     except AttributeError:
         pass
+
+
+def add_point(member_id, value):
+    cult = get_cult(member_id)
+    stage = get_stage(member_id)
+    score = get_score(member_id) + value
+    if cfg.CULT_POINTS_WALL[cult - 1] <= score:
+        stage += 1
+        set_score(member_id,score - cfg.CULT_POINTS_WALL[cult - 1])
+        if stage == 10:
+            cult += 1
+            stage = 1
+        set_cult(member_id, cult)
+        set_stage(member_id, stage)
+        return [cult, stage], True
+    set_score(member_id, score)
+    return [cult, stage], False
+
+
+async def update_member(member, guild):
+    cultivation = get_cult_from_db(member.id)
+    await clear_role_cultivation(member, guild)
+    role_cult = get(guild.roles, name=cfg.CULT_RANKS_NAME[cultivation[0] - 1])
+    role_stage = get(guild.roles, name=give_name_stage(cultivation[1]))
+    try:
+        await member.add_roles(role_cult)
+        await member.add_roles(role_stage)
+    except AttributeError:
+        pass
+    print(f'User - {member.name} was update with cultivation roles')
+
+
+async def update_status(member, t, guild):
+    last = int(get_time(member.id))
+    points = (t - last) // 30
+    cult, status = add_point(member.id, points)
+    await set_time(member.id, 0)
+    if status:
+        await update_member(member, guild)
