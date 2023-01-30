@@ -38,7 +38,17 @@ async def on_ready():
                             print(f"User - {member.name} was update with main roles")
                         except Exception as error:
                             print(error)
-                cultivation, antisync = sync(member.id, roles)
+                cultivation, antisync, new = sync(member.id, roles)
+                if new:
+                    await clear_role_cultivation(member, guild)
+                    role_cult = get(guild.roles, name=cfg.CULT_RANKS_NAME[0])
+                    role_stage = get(guild.roles, name=give_name_stage(1))
+                    try:
+                        await member.add_roles(role_cult)
+                        await member.add_roles(role_stage)
+                    except AttributeError:
+                        pass
+                    print(f'User - {member.name} was update with cultivation roles')
                 if not antisync:
                     await clear_role_cultivation(member, guild)
                     role_cult = get(guild.roles, name=cfg.CULT_RANKS_NAME[cultivation[0] - 1])

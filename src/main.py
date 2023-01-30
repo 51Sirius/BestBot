@@ -35,17 +35,20 @@ def get_cult_from_db(member_id):
 
 
 def sync(member_id, roles):
+    if not exist_user(member_id):
+        add_user(member_id)
+        return 0, True, True
     cult_from_db = get_cult_from_db(member_id)
     cult_from_ds = get_cult_from_ds(roles)
     if cult_from_db[0] != cult_from_ds[0] or cult_from_db[1] != cult_from_ds[1]:
         if cult_from_db[0] * 9 + cult_from_db[1] > cult_from_ds[0] * 9 + cult_from_ds[1]:
-            return [cult_from_db[0], cult_from_db[1]], False
+            return [cult_from_db[0], cult_from_db[1]], False, False
         else:
             set_cultivation(member_id, cult_from_ds)
-            return [cult_from_ds[0], cult_from_ds[1]], True
+            return [cult_from_ds[0], cult_from_ds[1]], True, False
 
     else:
-        return cult_from_db, True
+        return cult_from_db, True, False
 
 
 async def clear_role_cultivation(member, guild):
@@ -62,10 +65,10 @@ async def clear_role_cultivation(member, guild):
 def add_point(member_id, value):
     cult = get_cult(member_id)
     stage = get_stage(member_id)
-    score = get_score(member_id) + value
+    score = get_score(member_id) + value * cfg.BUST_XP * get_bust_exp(member_id)
     if cfg.CULT_POINTS_WALL[cult - 1] <= score:
         stage += 1
-        set_score(member_id,score - cfg.CULT_POINTS_WALL[cult - 1])
+        set_score(member_id, score - cfg.CULT_POINTS_WALL[cult - 1])
         if stage == 10:
             cult += 1
             stage = 1
@@ -87,6 +90,10 @@ async def update_member(member, guild):
     except AttributeError:
         pass
     print(f'User - {member.name} was update with cultivation roles')
+
+
+async def add_voice_count(member_id, count):
+    pass
 
 
 async def update_status(member, t, guild):
