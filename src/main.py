@@ -74,8 +74,10 @@ def add_point(member_id, value):
             stage = 1
         set_cult(member_id, cult)
         set_stage(member_id, stage)
+        print(f'User - {member_id} was update score to {score}')
         return [cult, stage], True
     set_score(member_id, score)
+    print(f'User - {member_id} was update score to {score}')
     return [cult, stage], False
 
 
@@ -103,3 +105,15 @@ async def update_status(member, t, guild):
     await set_time(member.id, 0)
     if status:
         await update_member(member, guild)
+
+
+async def give_role_with_cult(member, cult):
+    await clear_role_cultivation(member, member.guild)
+    role_cult = get(member.guild.roles, name=cfg.CULT_RANKS_NAME[cult[0] - 1])
+    role_stage = get(member.guild.roles, name=give_name_stage(cult[1]))
+    try:
+        await member.add_roles(role_cult)
+        await member.add_roles(role_stage)
+    except AttributeError:
+        pass
+    print(f'User - {member.name} was add role with cult')

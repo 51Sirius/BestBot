@@ -5,7 +5,7 @@ from src.main import *
 from disnake.utils import get
 import time
 
-intents = disnake.Intents.default()
+intents = disnake.Intents.all()
 intents.members = True
 
 initial_extensions = ['src.general']
@@ -40,25 +40,9 @@ async def on_ready():
                             print(error)
                 cultivation, antisync, new = sync(member.id, roles)
                 if new:
-                    await clear_role_cultivation(member, guild)
-                    role_cult = get(guild.roles, name=cfg.CULT_RANKS_NAME[0])
-                    role_stage = get(guild.roles, name=give_name_stage(1))
-                    try:
-                        await member.add_roles(role_cult)
-                        await member.add_roles(role_stage)
-                    except AttributeError:
-                        pass
-                    print(f'User - {member.name} was update with cultivation roles')
+                    await give_role_with_cult(member, [1, 1])
                 if not antisync:
-                    await clear_role_cultivation(member, guild)
-                    role_cult = get(guild.roles, name=cfg.CULT_RANKS_NAME[cultivation[0] - 1])
-                    role_stage = get(guild.roles, name=give_name_stage(cultivation[1]))
-                    try:
-                        await member.add_roles(role_cult)
-                        await member.add_roles(role_stage)
-                    except AttributeError:
-                        pass
-                    print(f'User - {member.name} was update with cultivation roles')
+                    await give_role_with_cult(member, cultivation)
     print("Bot was started!!!")
 
 
@@ -86,15 +70,16 @@ async def on_member_join(member):
         cult = get_cult_from_db(member.id)
     else:
         add_user(member.id)
-    await clear_role_cultivation(member, member.guild)
-    role_cult = get(member.guild.roles, name=cfg.CULT_RANKS_NAME[cult[0]-1])
-    role_stage = get(member.guild.roles, name=give_name_stage(cult[1]))
-    try:
-        await member.add_roles(role_cult)
-        await member.add_roles(role_stage)
-    except AttributeError:
-        pass
-    print(f'User - {member.name} was add role with cult')
+    await give_role_with_cult(member, cult)
+
+
+@bot.event
+async def on_message(ctx):
+    if ctx.author.id != bot.user.id:
+        points = len(ctx.content)
+        cult, update = add_point(ctx.author.id, points)
+        if update:
+            await give_role_with_cult(ctx.author, cult)
 
 
 bot.run(cfg.BOT_TOKEN_TEST)
