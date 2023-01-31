@@ -72,4 +72,29 @@ async def on_voice_state_update(member, before, after):
             await update_status(member, t, before.channel.guild)
 
 
+@bot.event
+async def on_member_join(member):
+    for check in cfg.MAIN_ROLES:
+        try:
+            role = get(member.guild.roles, name=check)
+            await member.add_roles(role)
+            print(f"User - {member.name} was update with main roles")
+        except Exception as error:
+            print(error)
+    cult = [1, 1]
+    if exist_user(member.id):
+        cult = get_cult_from_db(member.id)
+    else:
+        add_user(member.id)
+    await clear_role_cultivation(member, member.guild)
+    role_cult = get(member.guild.roles, name=cfg.CULT_RANKS_NAME[cult[0]-1])
+    role_stage = get(member.guild.roles, name=give_name_stage(cult[1]))
+    try:
+        await member.add_roles(role_cult)
+        await member.add_roles(role_stage)
+    except AttributeError:
+        pass
+    print(f'User - {member.name} was add role with cult')
+
+
 bot.run(cfg.BOT_TOKEN_TEST)
