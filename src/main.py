@@ -65,20 +65,18 @@ async def clear_role_cultivation(member, guild):
 def add_point(member_id, value):
     cult = get_cult(member_id)
     stage = get_stage(member_id)
-    score = get_score(member_id) + value * cfg.BUST_XP * get_bust_exp(member_id)
-    if cfg.CULT_POINTS_WALL[cult - 1] <= score:
+    flag = False
+    while get_score(member_id) + value >= cfg.CULT_POINTS_WALL[cult - 1]:
+        flag = True
         stage += 1
-        set_score(member_id, score - cfg.CULT_POINTS_WALL[cult - 1])
+        value -= cfg.CULT_POINTS_WALL[cult - 1] - get_score(member_id)
         if stage == 10:
             cult += 1
             stage = 1
-        set_cult(member_id, cult)
-        set_stage(member_id, stage)
-        print(f'User - {member_id} was update score to {score}')
-        return [cult, stage], True
-    set_score(member_id, score)
-    print(f'User - {member_id} was update score to {score}')
-    return [cult, stage], False
+        set_score(member_id, 0)
+    set_score(member_id, value+get_score(member_id))
+    print(f'User - {member_id} was update score')
+    return [cult, stage], flag
 
 
 async def update_member(member, guild):
@@ -101,7 +99,7 @@ async def add_voice_count(member_id, count):
 async def update_status(member, t, guild):
     last = int(get_time(member.id))
     points = (t - last) // 30
-    cult, status = add_point(member.id, points)
+    cult, status = add_point(member.id, points * cfg.BUST_XP * get_bust_exp(member.id))
     await set_time(member.id, 0)
     if status:
         await update_member(member, guild)
@@ -117,3 +115,9 @@ async def give_role_with_cult(member, cult):
     except AttributeError:
         pass
     print(f'User - {member.name} was add role with cult')
+
+
+def get_rank_name(user_id):
+    rank_cult = cur.execute('select cult_rank from users where id=?', (user_id,)).fetchone()[0]
+    stage = cur.execute('select stadia_cult from users where id=?', (user_id,)).fetchone()[0]
+    return str(cfg.CULT_RANKS_NAME[rank_cult - 1] + ' ' + str(stage))

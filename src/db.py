@@ -1,4 +1,5 @@
 from sqlite3 import *
+import cfg
 
 con = connect('db.sqlite')
 cur = con.cursor()
@@ -79,3 +80,7 @@ def add_user(user_id, points=0):
     print(f'Add new user with id - {user_id}')
     return cur.execute('select * from users where id = ?', (user_id,))
 
+
+def get_info_rank(user_id):
+    rank_cult = cur.execute('select cult_rank from users where id=?', (user_id,)).fetchone()[0]
+    return [rank_cult, [get_score(user_id), cfg.CULT_POINTS_WALL[rank_cult - 1]]]

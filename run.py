@@ -8,7 +8,7 @@ import time
 intents = disnake.Intents.all()
 intents.members = True
 
-initial_extensions = ['src.general']
+initial_extensions = ['src.admin', 'src.general', 'src.ranks']
 bot = commands.InteractionBot(intents=intents)
 
 if __name__ == '__main__':
@@ -77,7 +77,7 @@ async def on_member_join(member):
 async def on_message(ctx):
     if ctx.author.id != bot.user.id:
         points = len(ctx.content)
-        cult, update = add_point(ctx.author.id, points)
+        cult, update = add_point(ctx.author.id, points * cfg.BUST_XP * get_bust_exp(ctx.author.id))
         if update:
             await give_role_with_cult(ctx.author, cult)
 
