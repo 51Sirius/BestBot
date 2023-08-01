@@ -13,8 +13,7 @@ initial_extensions = ['src.admin', 'src.general', 'src.ranks']
 bot = commands.InteractionBot(intents=intents)
 
 if __name__ == '__main__':
-    os.environ.get('BOT_TOKEN')
-    if cfg.BOT_TOKEN == "":
+    if os.environ.get('BOT_TOKEN') == "":
         print("Error: No bot token!")
         exit()
     for extension in initial_extensions:
@@ -84,4 +83,4 @@ async def on_message(ctx):
             await give_role_with_cult(ctx.author, cult)
 
 
-bot.run(cfg.BOT_TOKEN_TEST)
+bot.run(os.environ.get('BOT_TOKEN'))
