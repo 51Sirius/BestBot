@@ -83,4 +83,4 @@ async def on_message(ctx):
             await give_role_with_cult(ctx.author, cult)
 
 
-bot.run(os.environ.get('BOT_TOKEN'))
+bot.run(str(os.environ.get('BOT_TOKEN')))
