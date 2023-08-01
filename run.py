@@ -1,5 +1,6 @@
 import disnake
 import cfg
+from config import *
 from disnake.ext import commands
 from src.main import *
 from disnake.utils import get
@@ -13,7 +14,7 @@ initial_extensions = ['src.admin', 'src.general', 'src.ranks']
 bot = commands.InteractionBot(intents=intents)
 
 if __name__ == '__main__':
-    if os.environ.get('BOT_TOKEN') == "":
+    if TOKEN == "":
         print("Error: No bot token!")
         exit()
     for extension in initial_extensions:
@@ -83,4 +84,4 @@ async def on_message(ctx):
             await give_role_with_cult(ctx.author, cult)
 
 
-bot.run(str(os.environ.get('BOT_TOKEN')))
+bot.run(TOKEN)
