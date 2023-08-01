@@ -24,8 +24,13 @@ class Ranks(commands.Cog):
     @commands.has_role('Глава секты')
     @commands.slash_command(name='transport', aliases=['trans'],
                             description="Перенесет культивацию с одного человека другому")
-    async def transport(self, inter, from_member: disnake.Member = None, to_member: disnake.Member = None):
-        pass
+    async def transport(self, inter, from_member: disnake.Member, to_member: disnake.Member):
+        score = give_point_from_user(from_member.id)
+        cult, update = add_point(to_member.id, score)
+        clear_cult(from_member)
+        if update:
+            await give_role_with_cult(to_member, cult)
+        await inter.send('Transfer is successfully')
 
     @commands.has_role('Глава секты')
     @commands.slash_command(name='add_point',
@@ -41,6 +46,17 @@ class Ranks(commands.Cog):
             if update:
                 await give_role_with_cult(inter.author, cult)
             await inter.send('Add point')
+
+    @commands.has_role('Глава секты')
+    @commands.slash_command(name='how_many_dao',
+                            description="Сколько духовной силы у человека")
+    async def how_many_dao(self, inter, member: disnake.Member = None):
+        if member is not None:
+            score = give_point_from_user(member.id)
+            await inter.send(f'User {member.name} has {score}')
+        else:
+            score = give_point_from_user(inter.author.id)
+            await inter.send(f'You have {score}')
 
 
 def setup(bot):

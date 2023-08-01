@@ -74,7 +74,9 @@ def add_point(member_id, value):
             cult += 1
             stage = 1
         set_score(member_id, 0)
-    set_score(member_id, value+get_score(member_id))
+    set_score(member_id, value + get_score(member_id))
+    set_stage(member_id, stage)
+    set_cult(member_id, cult)
     print(f'User - {member_id} was update score')
     return [cult, stage], flag
 
@@ -121,3 +123,20 @@ def get_rank_name(user_id):
     rank_cult = cur.execute('select cult_rank from users where id=?', (user_id,)).fetchone()[0]
     stage = cur.execute('select stadia_cult from users where id=?', (user_id,)).fetchone()[0]
     return str(cfg.CULT_RANKS_NAME[rank_cult - 1] + ' ' + str(stage))
+
+
+def give_point_from_user(user_id):
+    stage, cult, score = get_stage(user_id), get_cult(user_id), get_score(user_id)
+    while stage != 1 or cult != 1:
+        score += cfg.CULT_POINTS_WALL[cult - 1]
+        stage -= 1
+        if stage == 0:
+            cult -= 1
+            stage = 9
+    return score
+
+
+def clear_cult(user_id):
+    set_cult(user_id, 1)
+    set_stage(user_id, 1)
+    set_score(user_id, 1)
