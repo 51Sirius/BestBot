@@ -4,6 +4,7 @@ from disnake.ext import commands
 from src.main import *
 from disnake.utils import get
 import time
+import os
 
 intents = disnake.Intents.all()
 intents.members = True
@@ -12,6 +13,7 @@ initial_extensions = ['src.admin', 'src.general', 'src.ranks']
 bot = commands.InteractionBot(intents=intents)
 
 if __name__ == '__main__':
+    os.environ.get('BOT_TOKEN')
     if cfg.BOT_TOKEN == "":
         print("Error: No bot token!")
         exit()

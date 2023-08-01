@@ -2,6 +2,7 @@ import disnake
 import cfg
 import src.card.card as card
 from src.main import *
+import os
 
 from disnake.ext import commands
 
